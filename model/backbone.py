@@ -7,7 +7,7 @@ pretrained_url = "https://github.com/fchollet/deep-learning-models/" \
                      "vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5"
 
 
-def VGG16(pretrained_weight='imagenet'):
+def VGG16(pretrained_weight='imagenet', trainable=True):
     input_layer = Input(shape=(None, None, 3))
 
     conv_block1 = Conv2D(filters=64,
@@ -71,11 +71,14 @@ def VGG16(pretrained_weight='imagenet'):
                          padding='same',
                          activation='relu')(conv_block5)
     conv_block5 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2))(conv_block5)
-    x=conv_block5
+
     if pretrained_weight == 'imagenet':
         VGG_Weights_path = keras.utils.get_file(
             pretrained_url.split('/')[-1], pretrained_url)
         Model(inputs=input_layer,
-              outputs=x).load_weights(VGG_Weights_path)
+              outputs=conv_block5).load_weights(VGG_Weights_path)
+    if trainable == False:
+        for layer in Model(inputs=input_layer, outputs=conv_block5).layers[:]:
+            layer.trainable = False
 
     return input_layer, conv_block1, conv_block2, conv_block3, conv_block4, conv_block5
