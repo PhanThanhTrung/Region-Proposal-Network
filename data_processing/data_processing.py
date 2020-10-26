@@ -39,7 +39,7 @@ def load_data():
     return all_image
 
 
-def test(all_image):
+def visualize(all_image):
     for image in all_image:
         print(image['image_path'])
         img = cv2.imread(image['image_path'])
@@ -56,4 +56,4 @@ def test(all_image):
 def produce_batch(image_detail, output_stride=16):
     image=cv2.imread(image_detail.get('image_path'))
     image=cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-    
+        
