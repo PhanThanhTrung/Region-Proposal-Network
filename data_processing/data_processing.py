@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cv2
 import numpy as np
 import config
+from utils import data_utils, model_utils
 
 
 def load_data():
@@ -53,7 +54,12 @@ def visualize(all_image):
         cv2.imshow('frame', img)
         cv2.waitKey(1)
 
-def produce_batch(image_detail, output_stride=16):
+def produce_batch(image_detail):
     image=cv2.imread(image_detail.get('image_path'))
     image=cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
-        
+    bboxes= image_detail.get('bounding_box')
+    bboxes=np.array(bboxes)
+    bboxes=data_utils.normalize_box(bboxes)
+
+    anchor=model_utils.anchors_generator(image,config.output_stride,config.scales, config.ratios)
+    

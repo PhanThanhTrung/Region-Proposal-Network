@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def IOU(bbox1, bbox2):
     box1_x1, box1_y1, box1_x2, box1_y2 = bbox1[0] - bbox1[2] // 2, bbox1[
         0] + bbox1[2] // 2, bbox1[1] - bbox1[3] // 2, bbox1[1] + bbox1[3] // 2
@@ -14,6 +15,7 @@ def IOU(bbox1, bbox2):
 
     return overlap / union
 
+
 def __anchors_size(output_stride, scales, ratios):
     cell = np.array([output_stride, output_stride]).reshape((2, 1))
     scale = np.array(scales).reshape(1, 3)
@@ -25,6 +27,7 @@ def __anchors_size(output_stride, scales, ratios):
     ])
     all_anchor_size = np.reshape(all_anchor_size, (9, 2))
     return all_anchor_size
+
 
 def anchors_generator(image, output_stride, scales, ratios):
     image_height, image_width, _ = image.shape
@@ -47,6 +50,7 @@ def anchors_generator(image, output_stride, scales, ratios):
                                  axis=-1)
     return all_anchors
 
+
 def calculate_iou(all_anchors, groundtruth):
     all_anchors = np.reshape(all_anchors,
                              (all_anchors.shape[0] * all_anchors.shape[1] *
@@ -59,6 +63,7 @@ def calculate_iou(all_anchors, groundtruth):
 
     return dense_iou
 
+
 def anchor_matching(dense_iou, threshold):
     """
     According to the paper, we assign a positive label to two kinds of anchors: 
@@ -67,16 +72,33 @@ def anchor_matching(dense_iou, threshold):
     We assign a negative label to a non-positive anchor if its IoU ratio is lower than 0.3 for all ground-truth 
     boxes.
     """
-    label_anchors=np.full((dense_iou.shape[0],1),-1, dtype=int)
-    max_overlap_with_anchor=np.array(np.max(dense_iou, axis=0))
-    max_overlap_arg_with_anchor=np.where(dense_iou==max_overlap_with_anchor)[0]
-    label_anchors[max_overlap_arg_with_anchor]=1
+    label_anchors = np.full((dense_iou.shape[0], 1), -1, dtype=int)
+    max_overlap_with_anchor = np.array(np.max(dense_iou, axis=0))
+    max_overlap_arg_with_anchor = np.where(
+        dense_iou == max_overlap_with_anchor)[0]
+    label_anchors[max_overlap_arg_with_anchor] = 1
 
-    max_overlap_with_gt=np.sum(dense_iou>=0.7,axis=1, keepdims=True)
-    label_anchors[max_overlap_with_gt!=0]=1
-    
-    max_overlap_with_gt=np.sum(dense_iou<=0.3,axis=1, keepdims=True)
-    label_anchors[max_overlap_with_gt==dense_iou.shape[1]]=0
+    max_overlap_with_gt = np.sum(dense_iou >= 0.7, axis=1, keepdims=True)
+    label_anchors[max_overlap_with_gt != 0] = 1
+
+    max_overlap_with_gt = np.sum(dense_iou <= 0.3, axis=1, keepdims=True)
+    label_anchors[max_overlap_with_gt == dense_iou.shape[1]] = 0
 
     return label_anchors
 
+
+def refined_anchors(label_anchors, all_anchors, image):
+    image_height, image_width = image.shape[0], image.shape[1]
+    outside_anchors = np.where(
+        all_anchors[..., 0] + all_anchors[..., 2] // 2 > image_width)
+    label_anchors[outside_anchors] = -1
+    outside_anchors = np.where(
+        all_anchors[..., 0] - all_anchors[..., 2] // 2 < 0)
+    label_anchors[outside_anchors] = -1
+    outside_anchors = np.where(
+        all_anchors[..., 1] + all_anchors[..., 3] // 2 > image_height)
+    label_anchors[outside_anchors] = -1
+    outside_anchors = np.where(
+        all_anchors[..., 1] - all_anchors[..., 3] // 2 < 0)
+    label_anchors[outside_anchors] = -1
+    return label_anchors
