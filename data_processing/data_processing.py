@@ -1,8 +1,8 @@
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import cv2
+import random
 import numpy as np
 import config
 from utils import data_utils, model_utils
@@ -72,18 +72,26 @@ def produce_batch(image_detail):
     anchors_label = model_utils.refined_anchors(anchors_label, all_anchors,
                                                 image)
 
-    anchors_label = anchors_label.reshape(
-        shape=(anchors_label.shape[0] * anchors_label.shape[1] *
-               anchors_label.shape[2], 1))
-    
-    nb_foreground=config.batch_size/3
-    nb_background=config.batch_size-nb_foreground
-    foreground_choice=np.random.choice(np.array(np.where(anchors_label==1)).T,size=nb_foreground)
+    featuremap_height, featuremap_width, nb_anchor, _ = anchors_label.shape
+    anchors_label = anchors_label.reshape(shape=(featuremap_height *
+                                                 featuremap_width * nb_anchor,
+                                                 1))
 
-anchors_label=np.random.randint(-1,2, size=14*14*9*1).reshape((14*14*9,1))
-nb_foreground=config.batch_size/3
-nb_background=config.batch_size-nb_foreground
-#foreground_choice=np.random.choice(np.array(np.where(anchors_label==1)).T,size=nb_foreground)
-print(anchors_label.shape)
-print(np.array(np.where(anchors_label==1)).shape)
-print(anchors_label[np.where(anchors_label==1)[0]])
+    #because there are too much posivitve and negative anchors, we randomly select 256 of them with the ratio of pos/neg=1/2
+    nb_foreground = int(config.batch_size / 3)
+    nb_background = int(config.batch_size - nb_foreground)
+    pos_anchor = np.where(anchors_label == 1)[0]
+    neg_anchor = np.where(anchors_label == 0)[0]
+    foreground_choice = random.sample(list(pos_anchor, nb_foreground))
+    background_choice = random.sample(list(neg_anchor, nb_background))
+    anchors_label[pos_anchor] = -1
+    anchors_label[foreground_choice] = 1
+    anchors_label[neg_anchor] = -1
+    anchors_label[background_choice] = 0
+
+    anchors_label = anchors_label.reshape(shape=(featuremap_height,
+                                                 featuremap_width, nb_anchor,
+                                                 1))
+
+    return anchors_label
+
