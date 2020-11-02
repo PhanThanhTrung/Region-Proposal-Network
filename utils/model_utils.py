@@ -64,7 +64,7 @@ def calculate_iou(all_anchors, groundtruth):
     return dense_iou
 
 
-def anchor_matching(dense_iou, threshold):
+def anchor_matching(dense_iou, higher_threshold, lower_threshold):
     """
     According to the paper, we assign a positive label to two kinds of anchors: 
     (i) the anchor/anchors with the highest Intersection-over- Union (IoU) overlap with a ground-truth box.
@@ -78,10 +78,10 @@ def anchor_matching(dense_iou, threshold):
         dense_iou == max_overlap_with_anchor)[0]
     label_anchors[max_overlap_arg_with_anchor] = 1
 
-    max_overlap_with_gt = np.sum(dense_iou >= 0.7, axis=1, keepdims=True)
+    max_overlap_with_gt = np.sum(dense_iou >= higher_threshold, axis=1, keepdims=True)
     label_anchors[max_overlap_with_gt != 0] = 1
 
-    max_overlap_with_gt = np.sum(dense_iou <= 0.3, axis=1, keepdims=True)
+    max_overlap_with_gt = np.sum(dense_iou <= lower_threshold, axis=1, keepdims=True)
     label_anchors[max_overlap_with_gt == dense_iou.shape[1]] = 0
 
     return label_anchors

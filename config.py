@@ -7,3 +7,8 @@ val_anno_file_path='/home/fluoxetine/Repository/Datasets/Wider_Face/wider_face_s
 #Region Proposal Network configuration
 number_of_anchor=9
 backbone='VGG'
+
+#anchors matching configuration
+batch_size=256
+higher_threshold=0.7
+lower_theshold=0.3
