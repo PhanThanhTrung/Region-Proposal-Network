@@ -20,7 +20,6 @@ def RPN():
     feature_maps = backbone_blocks[-1]
     conv_3x3 = Conv2D(filters=512,
                       kernel_size=(3, 3),
-                      padding='same',
                       strides=(1, 1),
                       activation='relu',
                       kernel_initializer='normal',

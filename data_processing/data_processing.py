@@ -65,6 +65,7 @@ def produce_batch(image_detail):
     all_anchors = model_utils.anchors_generator(image, config.output_stride,
                                                 config.scales, config.ratios)
     dense_iou = model_utils.calculate_iou(all_anchors, bboxes)
+    y_truth_reg = model_utils.transform_box(all_anchors, bboxes, dense_iou)
     anchors_label = model_utils.anchor_matching(
         dense_iou,
         higher_threshold=config.higher_threshold,
@@ -89,9 +90,7 @@ def produce_batch(image_detail):
     anchors_label[neg_anchor] = -1
     anchors_label[background_choice] = 0
 
-    anchors_label = anchors_label.reshape(shape=(featuremap_height,
+    y_truth_cls = anchors_label.reshape(shape=(featuremap_height,
                                                  featuremap_width, nb_anchor,
                                                  1))
-
-    return anchors_label
-
+    return y_truth_cls, y_truth_reg
