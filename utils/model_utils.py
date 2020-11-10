@@ -78,10 +78,14 @@ def anchor_matching(dense_iou, higher_threshold, lower_threshold):
         dense_iou == max_overlap_with_anchor)[0]
     label_anchors[max_overlap_arg_with_anchor] = 1
 
-    max_overlap_with_gt = np.sum(dense_iou >= higher_threshold, axis=1, keepdims=True)
+    max_overlap_with_gt = np.sum(dense_iou >= higher_threshold,
+                                 axis=1,
+                                 keepdims=True)
     label_anchors[max_overlap_with_gt != 0] = 1
 
-    max_overlap_with_gt = np.sum(dense_iou <= lower_threshold, axis=1, keepdims=True)
+    max_overlap_with_gt = np.sum(dense_iou <= lower_threshold,
+                                 axis=1,
+                                 keepdims=True)
     label_anchors[max_overlap_with_gt == dense_iou.shape[1]] = 0
 
     return label_anchors
@@ -102,3 +106,25 @@ def refined_anchors(label_anchors, all_anchors, image):
         all_anchors[..., 1] - all_anchors[..., 3] // 2 < 0)
     label_anchors[outside_anchors] = -1
     return label_anchors
+
+
+def transform_box(all_anchors, bbox, dense_iou):
+    feature_map_height, feature_map_width, number_of_anchors, coor = all_anchors.shape
+    all_anchors = np.reshape(
+        all_anchors,
+        (feature_map_width * feature_map_height * number_of_anchors, coor))
+    target_gt_of_anchor = np.argmax(dense_iou, axis=1)
+    output = np.zeros_like(all_anchors)
+    for i in range(all_anchors.shape[0]):
+        x_center, y_center, width, height = all_anchors[i]
+        target_gt = bbox[target_gt_of_anchor[i]]
+        gt_x_center, gt_y_center, gt_width, gt_height = target_gt
+        t_x, t_y = (gt_x_center - x_center) / width, (gt_y_center -
+                                                      y_center) / height
+        t_w, t_h = np.log(t_w / width), np.log(t_h / height)
+        output[i] = [t_x, t_y, t_w, t_h]
+    output = output.reshape(
+        (feature_map_height, feature_map_width, number_of_anchors, coor))
+    return output
+
+
