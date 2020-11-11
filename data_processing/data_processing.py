@@ -21,7 +21,6 @@ def load_data():
                 break
 
             if ".jpg" in line:
-                #print(line)
                 image['image_path'] = (config.train_image_folder +
                                        line).strip(" ").strip("\n")
             next_line = f.readline()
@@ -94,4 +93,21 @@ def produce_batch(image_detail):
                                                  featuremap_width, nb_anchor,
                                                  1))
     y_truth_reg= np.concatenate((y_truth_reg, y_truth_cls), axis=-1)
-    return y_truth_cls, y_truth_reg
+    return image, y_truth_cls, y_truth_reg
+
+def batch_generator():
+    all_data=load_data()
+    while True:
+        suffle_all_data= random.suffle(all_data)
+        for sample in suffle_all_data:
+            try:
+                image, y_truth_cls, y_truth_reg= produce_batch(sample)
+            
+                image=np.expand_dims(image, axis=0)
+                y_truth_cls=np.expand_dims(y_truth_cls, axis=0)
+                y_truth_reg=np.expand_dims(y_truth_reg,axis=0)
+
+                yield image, [y_truth_cls, y_truth_reg]
+            except Exception as e:
+                print(e)
+                continue
