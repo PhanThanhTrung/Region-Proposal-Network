@@ -11,7 +11,7 @@ from keras.models import Model
 from keras.layers import Conv2D, MaxPooling2D, Input
 
 
-def RPN():
+def model():
     if config.backbone == 'VGG':
         backbone_blocks = backbone.VGG16()
     else:
@@ -21,6 +21,7 @@ def RPN():
     conv_3x3 = Conv2D(filters=512,
                       kernel_size=(3, 3),
                       strides=(1, 1),
+                      padding='same',
                       activation='relu',
                       kernel_initializer='normal',
                       name='rpn_3x3_conv')(feature_maps)
