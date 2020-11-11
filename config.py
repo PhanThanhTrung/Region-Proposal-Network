@@ -12,3 +12,7 @@ backbone='VGG'
 batch_size=256
 higher_threshold=0.7
 lower_theshold=0.3
+
+#loss configuration
+lamda=10 #by default
+epsilon=1.0 #for smooth L1

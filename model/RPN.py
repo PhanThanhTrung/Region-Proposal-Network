@@ -4,7 +4,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import keras
 import config
-import backbone
+from model import backbone
 import numpy as np
 import keras.backend as K
 from keras.models import Model

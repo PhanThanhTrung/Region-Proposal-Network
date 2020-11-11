@@ -93,4 +93,5 @@ def produce_batch(image_detail):
     y_truth_cls = anchors_label.reshape(shape=(featuremap_height,
                                                  featuremap_width, nb_anchor,
                                                  1))
+    y_truth_reg= np.concatenate((y_truth_reg, y_truth_cls), axis=-1)
     return y_truth_cls, y_truth_reg
