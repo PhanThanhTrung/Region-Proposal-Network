@@ -1,17 +1,16 @@
 #Data loader configuration
-train_image_folder='/home/fluoxetine/Repository/Datasets/Wider_Face/WIDER_train/'
-train_anno_file_path='/home/fluoxetine/Repository/Datasets/Wider_Face/wider_face_split/wider_face_train_bbx_gt.txt'
-val_image_folder='/home/fluoxetine/Repository/Datasets/Wider_Face/WIDER_val/'
-val_anno_file_path='/home/fluoxetine/Repository/Datasets/Wider_Face/wider_face_split/wider_face_val_bbx_gt.txt'
-
+train_image_folder='/Users/hit.fluoxetine/Datasets/Sample_dataset/images/'
+train_anno_file_path='/Users/hit.fluoxetine/Datasets/Sample_dataset/annotations/xmls/'
 #Region Proposal Network configuration
 number_of_anchor=9
 backbone='VGG'
-
+output_stride=16
 #anchors matching configuration
 batch_size=256
 higher_threshold=0.7
-lower_theshold=0.3
+lower_threshold=0.3
+scales=[0.5,1,2]
+ratios=[1,2,1,1,2,1]
 
 #loss configuration
 lamda=10 #by default

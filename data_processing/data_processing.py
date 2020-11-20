@@ -6,7 +6,21 @@ import random
 import numpy as np
 import config
 from utils import data_utils, model_utils
+import xml.etree.ElementTree as ET
 
+def parse_xml(file_name):
+    details={}
+    details['image_path']=config.train_image_folder+file_name.split('/')[-1][:-3]+'jpg'
+    details['bounding_box']=[]
+    root= ET.parse(file_name).getroot()
+    for bbox in root.findall("object/bndbox"):
+        x_max =int(bbox.find("xmax").text)
+        y_max=int(bbox.find("ymax").text)
+        x_min=int(bbox.find("xmin").text)
+        y_min=int(bbox.find("ymin").text)
+
+        details['bounding_box'].append([x_min, y_min, x_max, y_max])
+    return details
 
 def load_data():
     """
@@ -71,7 +85,7 @@ def produce_batch(image_detail):
         lower_threshold=config.lower_threshold)
     anchors_label = model_utils.refined_anchors(anchors_label, all_anchors,
                                                 image)
-
+                                                
     featuremap_height, featuremap_width, nb_anchor, _ = anchors_label.shape
     anchors_label = anchors_label.reshape(shape=(featuremap_height *
                                                  featuremap_width * nb_anchor,
@@ -96,18 +110,25 @@ def produce_batch(image_detail):
     return image, y_truth_cls, y_truth_reg
 
 def batch_generator():
-    all_data=load_data()
+    all_file=os.listdir(config.train_anno_file_path)
+    all_data=all_file.copy()
     while True:
-        suffle_all_data= random.suffle(all_data)
-        for sample in suffle_all_data:
-            try:
-                image, y_truth_cls, y_truth_reg= produce_batch(sample)
-            
-                image=np.expand_dims(image, axis=0)
-                y_truth_cls=np.expand_dims(y_truth_cls, axis=0)
-                y_truth_reg=np.expand_dims(y_truth_reg,axis=0)
+        random.shuffle(all_data)
+        for sample in all_data:
+            details=parse_xml(config.train_anno_file_path+sample)
+            # try:
+            #     image, y_truth_cls, y_truth_reg= produce_batch(details)
+            #     image=np.expand_dims(image, axis=0)
+            #     y_truth_cls=np.expand_dims(y_truth_cls, axis=0)
+            #     y_truth_reg=np.expand_dims(y_truth_reg,axis=0)
 
-                yield image, [y_truth_cls, y_truth_reg]
-            except Exception as e:
-                print(e)
-                continue
+            #     yield image, [y_truth_cls, y_truth_reg]
+            # except Exception as e:
+            #     print(e)
+            #     break
+            image, y_truth_cls, y_truth_reg= produce_batch(details)
+            image=np.expand_dims(image, axis=0)
+            y_truth_cls=np.expand_dims(y_truth_cls, axis=0)
+            y_truth_reg=np.expand_dims(y_truth_reg,axis=0)
+
+            yield image, [y_truth_cls, y_truth_reg]
