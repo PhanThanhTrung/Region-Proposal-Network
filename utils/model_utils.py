@@ -121,7 +121,7 @@ def transform_box(all_anchors, bbox, dense_iou):
         t_w, t_h = np.log(gt_width / width), np.log(gt_height / height)
         output[i] = [t_x, t_y, t_w, t_h]
     output = output.reshape(
-        (feature_map_height, feature_map_width, number_of_anchors, coor))
+        (feature_map_height, feature_map_width, number_of_anchors*coor))
     return output
 
 

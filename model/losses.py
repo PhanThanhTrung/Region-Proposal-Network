@@ -15,12 +15,13 @@ def classification_loss(y_truth, y_pred):
 
 
 def regression_loss(y_truth, y_pred):
-    cls_label = y_truth[..., -1]
+    cls_label = y_truth[..., -config.number_of_anchor:]
     mask = K.cast(cls_label[cls_label > 0], tf.float32)
-    y_truth_reg = y_truth[..., :4]
+    non_mask=(K.cast(cls_label[cls_label <=0], tf.float32))
+    num_anchors= K.sum(mask)+K.sum(non_mask)/4
+    y_truth_reg = y_truth[..., :4*config.number_of_anchor]
     x = y_truth_reg - y_pred
     x_abs = K.abs(x)
     x_bool = K.cast(K.less_equal(x_abs, config.epsilon), tf.float32)
     return config.lamda * K.sum(
-        mask * (x_bool * (0.5 * x * x) + (1 - x_bool) * (x_abs - 0.5))) / (feature_map_height * feature_map_width *
-                                   number_of_anchor)
+        mask * (x_bool * (0.5 * x * x) + (1 - x_bool) * (x_abs - 0.5))) / num_anchors

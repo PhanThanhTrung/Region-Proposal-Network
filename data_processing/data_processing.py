@@ -98,10 +98,12 @@ def produce_batch(image_detail):
     anchors_label[neg_anchor] = -1
     anchors_label[background_choice] = 0
 
-    y_truth_cls = anchors_label.reshape((featuremap_height,
+    y_truth_cls = np.reshape(anchors_label, (featuremap_height,
                                                  featuremap_width, nb_anchor,
                                                  1))
-    y_truth_reg= np.concatenate((y_truth_reg, y_truth_cls), axis=-1)
+    mask= np.repeat(y_truth_cls, repeats=4, axis=-1)
+    mask=np.reshape(mask, y_truth_reg.shape)
+    y_truth_reg= np.concatenate((y_truth_reg, mask), axis=-1)
     return image, y_truth_cls, y_truth_reg
 
 def batch_generator():
@@ -110,22 +112,17 @@ def batch_generator():
     while True:
         random.shuffle(all_data)
         for sample in all_data:
+            print("[INFO] working on image: ",sample[:-4])
             details=parse_xml(config.train_anno_file_path+sample)
-            # try:
-            #     image, y_truth_cls, y_truth_reg= produce_batch(details)
-            #     image=np.expand_dims(image, axis=0)
-            #     y_truth_cls=np.expand_dims(y_truth_cls, axis=0)
-            #     y_truth_reg=np.expand_dims(y_truth_reg,axis=0)
-
-            #     yield image, [y_truth_cls, y_truth_reg]
-            # except Exception as e:
-            #     print(e)
-            #     break
-            image, y_truth_cls, y_truth_reg= produce_batch(details)
-            image=np.expand_dims(image, axis=0)
-            y_truth_cls=np.expand_dims(y_truth_cls, axis=0)
-            y_truth_reg=np.expand_dims(y_truth_reg,axis=0)
-            y_truth_cls=np.array(y_truth_cls, dtype='float32')
-            y_truth_reg=np.array(y_truth_reg, dtype='float32')
-
-            yield image, [y_truth_cls, y_truth_reg]
+            try:
+                image, y_truth_cls, y_truth_reg= produce_batch(details)
+                image=np.expand_dims(image, axis=0)
+                y_truth_cls=np.expand_dims(y_truth_cls, axis=0)
+                y_truth_reg=np.expand_dims(y_truth_reg,axis=0)
+                y_truth_cls=np.array(y_truth_cls, dtype='float32')
+                y_truth_reg=np.array(y_truth_reg, dtype='float32')
+                yield image, [y_truth_cls, y_truth_reg]
+            except Exception as e:
+                print(e)
+                continue
+            

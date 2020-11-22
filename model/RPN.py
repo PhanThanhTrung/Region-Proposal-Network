@@ -8,7 +8,7 @@ from model import backbone
 import numpy as np
 import keras.backend as K
 from keras.models import Model
-from keras.layers import Conv2D, MaxPooling2D, Input
+from keras.layers import Conv2D, MaxPooling2D, Input, Reshape
 
 
 def model():
