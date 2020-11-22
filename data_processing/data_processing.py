@@ -77,6 +77,7 @@ def produce_batch(image_detail):
 
     all_anchors = model_utils.anchors_generator(image, config.output_stride,
                                                 config.scales, config.ratios)
+    featuremap_height, featuremap_width, nb_anchor, _ = all_anchors.shape
     dense_iou = model_utils.calculate_iou(all_anchors, bboxes)
     y_truth_reg = model_utils.transform_box(all_anchors, bboxes, dense_iou)
     anchors_label = model_utils.anchor_matching(
@@ -85,25 +86,19 @@ def produce_batch(image_detail):
         lower_threshold=config.lower_threshold)
     anchors_label = model_utils.refined_anchors(anchors_label, all_anchors,
                                                 image)
-                                                
-    featuremap_height, featuremap_width, nb_anchor, _ = anchors_label.shape
-    anchors_label = anchors_label.reshape(shape=(featuremap_height *
-                                                 featuremap_width * nb_anchor,
-                                                 1))
-
     #because there are too much posivitve and negative anchors, we randomly select 256 of them with the ratio of pos/neg=1/2
     nb_foreground = int(config.batch_size / 3)
     nb_background = int(config.batch_size - nb_foreground)
     pos_anchor = np.where(anchors_label == 1)[0]
     neg_anchor = np.where(anchors_label == 0)[0]
-    foreground_choice = random.sample(list(pos_anchor, nb_foreground))
-    background_choice = random.sample(list(neg_anchor, nb_background))
+    foreground_choice = random.sample(list(pos_anchor), nb_foreground)
+    background_choice = random.sample(list(neg_anchor), nb_background)
     anchors_label[pos_anchor] = -1
     anchors_label[foreground_choice] = 1
     anchors_label[neg_anchor] = -1
     anchors_label[background_choice] = 0
 
-    y_truth_cls = anchors_label.reshape(shape=(featuremap_height,
+    y_truth_cls = anchors_label.reshape((featuremap_height,
                                                  featuremap_width, nb_anchor,
                                                  1))
     y_truth_reg= np.concatenate((y_truth_reg, y_truth_cls), axis=-1)
@@ -130,5 +125,7 @@ def batch_generator():
             image=np.expand_dims(image, axis=0)
             y_truth_cls=np.expand_dims(y_truth_cls, axis=0)
             y_truth_reg=np.expand_dims(y_truth_reg,axis=0)
+            y_truth_cls=np.array(y_truth_cls, dtype='float32')
+            y_truth_reg=np.array(y_truth_reg, dtype='float32')
 
             yield image, [y_truth_cls, y_truth_reg]

@@ -92,7 +92,6 @@ def refined_anchors(label_anchors, all_anchors, image):
     image_height, image_width = image.shape[0], image.shape[1]
     outside_anchors = np.where(
         all_anchors[..., 0] + all_anchors[..., 2] // 2 > image_width)[0]
-    print(outside_anchors)
     label_anchors[outside_anchors] = -1
     outside_anchors = np.where(
         all_anchors[..., 0] - all_anchors[..., 2] // 2 < 0)[0]

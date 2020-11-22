@@ -8,5 +8,5 @@ from data_processing import data_processing
 model=RPN.model()
 optimizer=Adam(lr=1e-5)
 model.compile(optimizer=optimizer, loss=[losses.classification_loss, losses.regression_loss])
-model.fit_generator(data_processing.batch_generator(), epochs=20)
+model.fit_generator(data_processing.batch_generator(), steps_per_epoch= 1024, epochs=20)
  
