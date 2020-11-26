@@ -101,10 +101,11 @@ def produce_batch(image_detail):
     y_truth_cls = np.reshape(anchors_label, (featuremap_height,
                                                  featuremap_width, nb_anchor,
                                                  1))
+    y_truth_cls = np.squeeze(y_truth_cls,axis=-1)
     mask= np.repeat(y_truth_cls, repeats=4, axis=-1)
     mask=np.reshape(mask, y_truth_reg.shape)
     y_truth_reg= np.concatenate((y_truth_reg, mask), axis=-1)
-    return image, y_truth_cls, y_truth_reg
+    return image, y_truth_reg, y_truth_cls
 
 def batch_generator():
     all_file=os.listdir(config.train_anno_file_path)
@@ -112,7 +113,6 @@ def batch_generator():
     while True:
         random.shuffle(all_data)
         for sample in all_data:
-            print("[INFO] working on image: ",sample[:-4])
             details=parse_xml(config.train_anno_file_path+sample)
             try:
                 image, y_truth_cls, y_truth_reg= produce_batch(details)
@@ -123,6 +123,6 @@ def batch_generator():
                 y_truth_reg=np.array(y_truth_reg, dtype='float32')
                 yield image, [y_truth_cls, y_truth_reg]
             except Exception as e:
-                print(e)
+                #print(e)
                 continue
             

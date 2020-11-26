@@ -4,7 +4,7 @@ train_anno_file_path='/Users/hit.fluoxetine/Datasets/Sample_dataset/annotations/
 #Region Proposal Network configuration
 number_of_anchor=9
 backbone='VGG'
-output_stride=16
+output_stride=32
 #anchors matching configuration
 batch_size=256
 higher_threshold=0.7
